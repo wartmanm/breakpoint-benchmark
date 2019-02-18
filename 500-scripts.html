@@ -4,9 +4,15 @@
     <META charset="utf-8">
     <script>
         window.count = 0;
+        function addScript() {
+            var script = document.createElement("script");
+            script.setAttribute("src", `./counter.js?count=${count}`);
+            document.head.appendChild(script);
+        };
     </script>
     <script src="./counter.min.js"/></script>
 </head>
 <body>
+    <button onclick="addScript()">Add a script</button>
 </body>
 </html>
