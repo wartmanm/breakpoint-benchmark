@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <META charset="utf-8">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            section {
+                display: flex;
+                flex-direction: row;
+            }
+            .cell {
+                padding: 1px;
+                border: 1px dotted blue;
+            }
+        </style>
+        <template id="elemTemplate">
+            <div class="cell"></div>
+        </template>
+    </head>
+    <body>
+        <button id="test">Test</button>
+        <button id="reset">Reset</button>
+        <section>
+            <div id="src"></div>
+            <div id="dest"></div>
+        </section>
+    </body>
+    <script src="jquery.js" ></script>
+    <script>
+    (function () {
+        "use strict";
+        // setup
+        function generateElements() {
+            const template = $(document.importNode($("#elemTemplate")[0].content.children[0], true));
+            return Array.from(new Array(500), (_, i) => template.clone().text(i));
+        };
+        const srcParent = $("#src");
+        const destParent = $("#dest");
+
+        srcParent.append(generateElements());
+        destParent.append(generateElements());
+
+        // The original, performance-naive code is slow everywhere.
+        function copyHeights(src, dest) {
+            for (let i = 0; i < src.length; i++) {
+                 dest.eq(i).height(src.eq(i).height());
+            }
+        }
+
+        // Rewrite that batches up writes, but still uses jQuery.  On my machine, this
+        // takes around 150ms in FF Nightly and 40ms in a Chromium build from today.
+        function copyHeights2(src, dest) {
+            const heights = [];
+            for (let i = 0; i < src.length; i++) {
+                heights.push(src.eq(i).height());
+            }
+            for (let i = 0; i < src.length; i++) {
+                dest.eq(i).height(heights[i]);
+            }
+        }
+
+        // Rewrite that bypasses jQuery entirely.  This takes around 6ms everywhere.
+        function copyHeights3(src, dest) {
+            const heights = [];
+            for (let i = 0; i < src.length; i++) {
+                const srcStyle = getComputedStyle(src[i]);
+                const destStyle = getComputedStyle(dest[i]);
+                heights.push(parseFloat(srcStyle.height) - getPadding(srcStyle) + getPadding(destStyle));
+            }
+            for (let i = 0; i < src.length; i++) {
+                dest[i].style.height = `${heights[i]}px`;
+            }
+
+            function getPadding(style) {
+                return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+            }
+        }
+
+        $("#test").on("click", function () {
+            this.textContent = "running";
+            performance.mark("heights start");
+            copyHeights2(srcParent.children(), destParent.children());
+            performance.mark("heights end");
+            performance.measure("heights", "heights start", "heights end");
+            console.log(`Copying heights took ${performance.getEntriesByName("heights")[0].duration}ms`);
+            this.textContent = "done";
+        });
+        $("#reset").on("click", () => {
+            $("#test").text("test");
+            destParent.children().css("height", "");
+                performance.clearMeasures();
+                performance.clearMarks();
+        });
+    })();
+    </script>
+</html>
