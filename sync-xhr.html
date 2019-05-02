@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <META charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          "use strict";
+
+          let show = localStorage.getItem("show") !== "false";
+
+          const toggleButton = document.getElementById("toggle");
+          toggleButton.addEventListener("click", function () {
+            show = !show;
+            localStorage.setItem("show", show);
+            showHide(show);
+          });
+
+          $(document.body).append(`
+            <div id="hideme">I will be shown/hidden</div>
+            <script src="xhr-script.js"><\/script>
+          `);
+
+          showHide(show);
+
+          function showHide(show) {
+            toggleButton.textContent = show ? "Hide" : "Show";
+            document.getElementById("hideme").style.display = show ? "" : "none";
+          }
+      });
+  </script>
+</head>
+<body>
+    <button id="toggle">Hide</button>
+</body>
+</html>
