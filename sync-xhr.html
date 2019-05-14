@@ -7,7 +7,7 @@
       document.addEventListener("DOMContentLoaded", function () {
           "use strict";
 
-          let show = localStorage.getItem("show") !== "false";
+          let show = localStorage.getItem("show") === "true";
 
           const toggleButton = document.getElementById("toggle");
           toggleButton.addEventListener("click", function () {
